@@ -67,7 +67,6 @@ def index(request):
 
     most_fresh_posts = list(fresh_posts)[-5:]
 
-    # most_popular_tags = Tag.objects.popular()[:5]
     posts_queryset = Post.objects.annotate(tag_count=Count('tags'))
     most_popular_tags = (
         Tag.objects
@@ -80,7 +79,7 @@ def index(request):
             serialize_post_optimized(post) for post in most_popular_posts
         ],
         'page_posts': [serialize_post_optimized(post) for post in most_fresh_posts],
-        'popular_tags': [serialize_tag     _optimized(tag) for tag in most_popular_tags],
+        'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
     }
     return render(request, 'index.html', context)
 

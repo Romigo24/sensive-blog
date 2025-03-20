@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 
 
 class PostQuerySet(models.QuerySet):
@@ -28,6 +28,13 @@ class PostQuerySet(models.QuerySet):
 class TagQuerySet(models.QuerySet):
     def popular(self):
         return self.annotate(count_tags=Count('posts')).order_by('-count_tags')
+    
+    def popular_tag_with_posts(self):
+        posts_queryset = Post.objects.annotate(tag_count=Count('tags'))
+        return (
+            self.popular()
+            .prefetch_related(Prefetch('posts', queryset=posts_queryset))
+        )[:5]
 
 
 class Post(models.Model):
@@ -52,6 +59,8 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Теги')
 
+    objects = PostQuerySet.as_manager()
+
     def __str__(self):
         return self.title
 
@@ -63,11 +72,11 @@ class Post(models.Model):
         verbose_name = 'пост'
         verbose_name_plural = 'посты'
 
-    objects = PostQuerySet.as_manager()
-
 
 class Tag(models.Model):
     title = models.CharField('Тег', max_length=20, unique=True)
+
+    objects = TagQuerySet.as_manager()
 
     def __str__(self):
         return self.title
@@ -82,8 +91,6 @@ class Tag(models.Model):
         ordering = ['title']
         verbose_name = 'тег'
         verbose_name_plural = 'теги'
-
-    objects = TagQuerySet.as_manager()
 
 
 class Comment(models.Model):

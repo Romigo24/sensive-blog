@@ -90,3 +90,4 @@ db.sqlite3
 media/
 .gitattributes
 /.trunk
+notes.md
